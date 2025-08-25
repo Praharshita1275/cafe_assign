@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant | Menu</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="container header">
+    <h1>🍽️ Bistro Belle</h1>
+    <nav>
+      <a class="btn outline" href="details.html">Go to Details →</a>
+      <a class="btn outline" href="about.html">About Cafe</a>
+      <button id="viewCartBtn" class="btn">View Cart (<span id="cartCount">0</span>)</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2>Starters</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Tomato Soup</h3>
+          <p>Warm & comforting classic.</p>
+          <div class="price-row">
+            <span class="price">₹120</span>
+            <button class="btn add" data-id="S1" data-name="Tomato Soup" data-price="120">Add</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Veg Spring Rolls</h3>
+          <p>Crispy rolls with veggies.</p>
+          <div class="price-row">
+            <span class="price">₹150</span>
+            <button class="btn add" data-id="S2" data-name="Veg Spring Rolls" data-price="150">Add</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Main Course</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Paneer Butter Masala</h3>
+          <p>Creamy, mildly spiced curry.</p>
+          <div class="price-row">
+            <span class="price">₹280</span>
+            <button class="btn add" data-id="M1" data-name="Paneer Butter Masala" data-price="280">Add</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Veg Biryani</h3>
+          <p>Fragrant basmati with veggies.</p>
+          <div class="price-row">
+            <span class="price">₹250</span>
+            <button class="btn add" data-id="M2" data-name="Veg Biryani" data-price="250">Add</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Desserts</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Gulab Jamun (2 pcs)</h3>
+          <p>Soft, syrup-soaked dumplings.</p>
+          <div class="price-row">
+            <span class="price">₹100</span>
+            <button class="btn add" data-id="D1" data-name="Gulab Jamun (2 pcs)" data-price="100">Add</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Chocolate Brownie</h3>
+          <p>Rich & gooey, baked fresh.</p>
+          <div class="price-row">
+            <span class="price">₹130</span>
+            <button class="btn add" data-id="D2" data-name="Chocolate Brownie" data-price="130">Add</button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cart Drawer -->
+  <div id="cartDrawer" class="drawer">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <h3>Your Cart</h3>
+        <button id="closeDrawer" class="btn icon" aria-label="Close">✕</button>
+      </div>
+      <div id="cartItems" class="cart-items"></div>
+      <div class="drawer-footer">
+        <div class="total-row">
+          <strong>Total:</strong> <span id="cartTotal">₹0</span>
+        </div>
+        <a href="details.html" class="btn primary" id="checkoutBtn">Proceed to Details →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="order.js"></script>
+  <script>
+    document.querySelectorAll(".btn.add").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = {
+          id: btn.dataset.id,
+          name: btn.dataset.name,
+          price: Number(btn.dataset.price),
+          qty: 1
+        };
+        addToCart(item);
+        updateCartCount();
+        openDrawer();
+        renderCart();
+      });
+    });
+
+    const drawer = document.getElementById("cartDrawer");
+    document.getElementById("viewCartBtn").onclick = () => { openDrawer(); renderCart(); };
+    document.getElementById("closeDrawer").onclick = closeDrawer;
+    drawer.addEventListener("click", (e) => { if (e.target === drawer) closeDrawer(); });
+
+    function openDrawer(){ drawer.classList.add("open"); }
+    function closeDrawer(){ drawer.classList.remove("open"); }
+
+    function renderCart(){
+      const cart = getCart();
+      const box = document.getElementById("cartItems");
+      const totalEl = document.getElementById("cartTotal");
+      if(cart.length === 0){
+        box.innerHTML = `<p class="muted">Your cart is empty.</p>`;
+        totalEl.textContent = "₹0";
+        return;
+      }
+      box.innerHTML = cart.map((it, i) => `
+        <div class="cart-line">
+          <div>
+            <strong>${it.name}</strong><br>
+            <span class="muted">₹${it.price}</span>
+          </div>
+          <div class="qty">
+            <button class="btn icon" data-i="${i}" data-act="dec">−</button>
+            <span>${it.qty}</span>
+            <button class="btn icon" data-i="${i}" data-act="inc">+</button>
+            <button class="btn icon danger" data-i="${i}" data-act="del" title="Remove">🗑️</button>
+          </div>
+        </div>
+      `).join("");
+      box.querySelectorAll("button").forEach(b=>{
+        b.onclick = ()=>{
+          const idx = Number(b.dataset.i);
+          const act = b.dataset.act;
+          if(act==="inc") changeQty(idx, 1);
+          if(act==="dec") changeQty(idx, -1);
+          if(act==="del") removeItem(idx);
+          renderCart();
+          updateCartCount();
+        };
+      });
+      totalEl.textContent = "₹" + cart.reduce((s,it)=> s + it.price*it.qty, 0);
+    }
+    updateCartCount();
+  </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant | Your Details</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header class="container header">
+    <h1>🧾 Order Details</h1>
+    <nav>
+      <a class="btn outline" href="index.html">← Back to Menu</a>
+    </nav>
+  </header>
+
+  <main class="container grid-2">
+    <section class="card">
+      <h2>Customer Information</h2>
+      <form id="detailsForm" class="form">
+        <label>
+          Full Name
+          <input type="text" id="name" placeholder="Enter your full name" required />
+        </label>
+        <label>
+          Phone
+          <input type="tel" id="phone" placeholder="10-digit number" pattern="[0-9]{10}" required />
+        </label>
+        <label>
+          Address
+          <textarea id="address" rows="3" placeholder="House no., Street, City" required></textarea>
+        </label>
+        <label>
+          Notes (optional)
+          <input type="text" id="notes" placeholder="Any special instructions?" />
+        </label>
+        <button class="btn primary" type="submit">Submit Order →</button>
+      </form>
+    </section>
+
+    <aside class="card">
+      <h2>Order Summary</h2>
+      <div id="summary"></div>
+      <div class="total-row">
+        <strong>Total:</strong> <span id="sumTotal">₹0</span>
+      </div>
+    </aside>
+  </main>
+
+  <script src="order.js"></script>
+  <script>
+    // Build summary
+    const summaryBox = document.getElementById("summary");
+    const sumTotal = document.getElementById("sumTotal");
+    const cart = getCart();
+
+    if(cart.length === 0){
+      summaryBox.innerHTML = `<p class="muted">Your cart is empty. <a href="index.html">Add items</a>.</p>`;
+    } else {
+      summaryBox.innerHTML = cart.map(it => `
+        <div class="cart-line">
+          <div><strong>${it.name}</strong><br><span class="muted">₹${it.price} × ${it.qty}</span></div>
+          <div>₹${it.price * it.qty}</div>
+        </div>
+      `).join("");
+      sumTotal.textContent = "₹" + cart.reduce((s,it)=> s + it.price*it.qty, 0);
+    }
+
+    // Handle submit
+    document.getElementById("detailsForm").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      if(cart.length === 0){
+        alert("Your cart is empty. Please add items from the Menu.");
+        window.location.href = "index.html";
+        return;
+      }
+      const customer = {
+        name: document.getElementById("name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        notes: document.getElementById("notes").value.trim(),
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem("customer", JSON.stringify(customer));
+      window.location.href = "confirm.html";
+    });
+  </script>
+</body>
+</html>

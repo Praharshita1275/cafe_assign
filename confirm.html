@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Restaurant | Confirmation</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <main class="container center">
+    <div class="card confirm">
+      <h1>✅ Your order has been submitted!</h1>
+      <p id="msg" class="muted"></p>
+      <div id="orderEcho" class="echo"></div>
+      <div class="actions">
+        <a class="btn primary" href="index.html">Order More</a>
+        <button class="btn outline" id="clearAll">Clear & Return</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="order.js"></script>
+  <script>
+    const customer = JSON.parse(localStorage.getItem("customer") || "{}");
+    const cart = getCart();
+
+    const name = customer.name ? customer.name : "Guest";
+    document.getElementById("msg").textContent =
+      `Thanks, ${name}. We’ll start preparing your food.`;
+
+    // Show a short echo of the order
+    const echo = document.getElementById("orderEcho");
+    if(cart.length){
+      const total = cart.reduce((s,it)=> s + it.price*it.qty, 0);
+      echo.innerHTML = `
+        <h3>Order Summary</h3>
+        <ul>
+          ${cart.map(it => `<li>${it.name} × ${it.qty} — ₹${it.price * it.qty}</li>`).join("")}
+        </ul>
+        <p><strong>Total:</strong> ₹${total}</p>
+        ${customer.address ? `<p><strong>Deliver to:</strong> ${customer.address}</p>` : ""}
+        ${customer.phone ? `<p><strong>Phone:</strong> ${customer.phone}</p>` : ""}
+      `;
+    }
+
+    // Clear storage & return
+    document.getElementById("clearAll").onclick = ()=>{
+      clearOrder();
+      window.location.href = "index.html";
+    };
+
+    // Auto-clear after showing confirmation (optional, but keeps things tidy)
+    // Comment out if you don't want it to auto-clear:
+    clearOrder();
+  </script>
+</body>
+</html>
